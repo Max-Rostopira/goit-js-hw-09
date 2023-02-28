@@ -1,56 +1,54 @@
-import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
+import flatpickr from 'flatpickr';
+
+// // Import additional css styles
+import 'flatpickr/dist/flatpickr.min.css';
+
+const inputDateEl = document.querySelector('#datetime-picker');
+const startBtnEl = document.querySelector('[data-start]');
+const dataDays = document.querySelector('[data-days]');
+const dataHours = document.querySelector('[data-hours]');
+const dataMinutes = document.querySelector('[data-minutes]');
+const dataSeconds = document.querySelector('[data-seconds]');
+
+startBtnEl.setAttribute('disabled', true);
 
 
-flatpickr("#datetime-picker", {
-    altInput: true,
-    altFormat: "F j, Y",
-    dateFormat: "Y-m-d",
-});
 
-
-const test = document.querySelector('#datetime-picker');
-const getValue = () => {
-
-    const today = new Date().getTime();
-    const future = new Date(test.value).getTime();
-
-    if (new Date().getTime() > new Date(test.value).getTime()) {
-        window.alert('Please choose a date in the future');
-    };
-    return future - today;
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+    onClose(selectedDates) {
+        if (selectedDates[0] <= Date.now()) {
+            window.alert('Please choose a date in the future"');
+        } else
+            startBtnEl.removeAttribute('disabled');
+          
+    console.log(selectedDates[0]);
+  },
 };
 
+const pickerDateEl = flatpickr(inputDateEl, options);
 
-
-test.addEventListener('input', getValue);
-
-const onStartBtn = document.querySelector('[data-start]');
-
-const onStart = () => {
-    let diff = getValue();
-    console.log(diff);
-    console.log(convertMs(diff));
+startBtnEl.addEventListener('click', (event) => {
+    event.target.setAttribute('disabled', true)
+    const timerId = setInterval(() => {
+    const diff = pickerDateEl.selectedDates[0] - Date.now();
     
-    const timerSec = document.querySelector('[data-seconds]');
-    const timerHour = document.querySelector('[data-hours]');
-    const timerMinuts = document.querySelector('[data-minutes]');
-    const timerDays = document.querySelector('[data-days]');
-    let w = 36000
-    let x = setInterval(() => {
-        w--;
-    const now = new Date().getTime()
-        const obj = convertMs(diff);
-        
+    if (diff <=0) {
+        clearInterval(timerId);
+        return 
+    }
+        console.log(convertMs(diff))
+        const { days, hours, minutes, seconds } = convertMs(diff)
+        dataDays.textContent = addLeadingZero(days);
+        dataHours.textContent = addLeadingZero(hours);
+        dataMinutes.textContent = addLeadingZero(minutes);
+        dataSeconds.textContent = addLeadingZero(seconds);
 
-        timerSec.textContent = obj.seconds;
-        timerHour.textContent = obj.hours;
-        timerMinuts.textContent = obj.minutes;
-        timerDays.textContent = obj.days;
-    }, 1000);
-};
-
-onStartBtn.addEventListener('click', onStart);
+}, 1000);
+})
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
@@ -70,3 +68,7 @@ function convertMs(ms) {
 
   return { days, hours, minutes, seconds };
 }
+
+function addLeadingZero(value) {
+    return value.toString().padStart(2, '0');
+};
